@@ -18,10 +18,10 @@
  *  USA.
  */
 
-/*
- * sockets.cxx - functions to deal with sockets.
- */
-static const char *ID = "$Id: sockets.cxx,v 1.3 2004/09/09 00:22:33 grmcdorman Exp $";
+ /*
+  * sockets.cxx - functions to deal with sockets.
+  */
+static const char* ID = "$Id: sockets.cxx,v 1.3 2004/09/09 00:22:33 grmcdorman Exp $";
 
 #ifdef WIN32
 #include <winsock2.h>
@@ -50,7 +50,7 @@ extern "C" {
 #include <rdr/FdOutStream.h>
 #include <rdr/Exception.h>
 
-extern "C" { void PrintInHex(char *buf, int len); }
+extern "C" { void PrintInHex(char* buf, int len); }
 
 
 int rfbsock;
@@ -76,28 +76,28 @@ InitializeSockets(void)
     WSADATA wsaData;
     int err;
 
-    wVersionRequested = MAKEWORD( 2, 2 );
+    wVersionRequested = MAKEWORD(2, 2);
 
-    err = WSAStartup( wVersionRequested, &wsaData );
-    if ( err != 0 ) {
+    err = WSAStartup(wVersionRequested, &wsaData);
+    if (err != 0) {
         fprintf(stderr, "Cannot initialize Windows Sockets\n");
         return False;
     }
 
-/* Confirm that the WinSock DLL supports 2.2.*/
-/* Note that if the DLL supports versions greater    */
-/* than 2.2 in addition to 2.2, it will still return */
-/* 2.2 in wVersion since that is the version we      */
-/* requested.                                        */
- 
-    if ( LOBYTE( wsaData.wVersion ) != 2 ||
-         HIBYTE( wsaData.wVersion ) != 2 ) {
+    /* Confirm that the WinSock DLL supports 2.2.*/
+    /* Note that if the DLL supports versions greater    */
+    /* than 2.2 in addition to 2.2, it will still return */
+    /* 2.2 in wVersion since that is the version we      */
+    /* requested.                                        */
+
+    if (LOBYTE(wsaData.wVersion) != 2 ||
+        HIBYTE(wsaData.wVersion) != 2) {
         fprintf(stderr, "Cannot get proper version of Windows Sockets\n");
-        WSACleanup( );
-        return False; 
+        WSACleanup();
+        return False;
     }
 
-/* The WinSock DLL is acceptable. Proceed. */
+    /* The WinSock DLL is acceptable. Proceed. */
 #endif
     return True;
 }
@@ -106,49 +106,51 @@ InitializeSockets(void)
  * ConnectToRFBServer.
  */
 
-Bool ConnectToRFBServer(const char *hostname, int port)
+Bool ConnectToRFBServer(const char* hostname, int port)
 {
-  int sock = ConnectToTcpAddr(hostname, port);
+    int sock = ConnectToTcpAddr(hostname, port);
 
-  if (sock < 0) {
-    fprintf(stderr,"Unable to connect to VNC server\n");
-    return False;
-  }
+    if (sock < 0) {
+        fprintf(stderr, "Unable to connect to VNC server\n");
+        return False;
+    }
 
-  return SetRFBSock(sock);
+    return SetRFBSock(sock);
 }
 
 Bool SetRFBSock(int sock)
 {
-  try {
-    rfbsock = sock;
-    fis = new rdr::FdInStream(rfbsock);
-    fos = new rdr::FdOutStream(rfbsock);
+    try {
+        rfbsock = sock;
+        fis = new rdr::FdInStream(rfbsock);
+        fos = new rdr::FdOutStream(rfbsock);
 
-    struct sockaddr_in peeraddr, myaddr;
-    socklen_t addrlen = sizeof(struct sockaddr_in);
+        struct sockaddr_in peeraddr, myaddr;
+        socklen_t addrlen = sizeof(struct sockaddr_in);
 
-    getpeername(sock, (struct sockaddr *)&peeraddr, &addrlen);
-    getsockname(sock, (struct sockaddr *)&myaddr, &addrlen);
+        getpeername(sock, (struct sockaddr*)&peeraddr, &addrlen);
+        getsockname(sock, (struct sockaddr*)&myaddr, &addrlen);
 
-    sameMachine = (peeraddr.sin_addr.s_addr == myaddr.sin_addr.s_addr);
+        sameMachine = (peeraddr.sin_addr.s_addr == myaddr.sin_addr.s_addr);
 
-    return True;
-  } catch (rdr::Exception& e) {
-    fprintf(stderr,"initialiseInStream: %s\n",e.str());
-  }
-  return False;
+        return True;
+    }
+    catch (rdr::Exception& e) {
+        fprintf(stderr, "initialiseInStream: %s\n", e.str());
+    }
+    return False;
 }
 
-Bool ReadFromRFBServer(char *out, unsigned int n)
+Bool ReadFromRFBServer(char* out, unsigned int n)
 {
-  try {
-    fis->readBytes(out, n);
-    return True;
-  } catch (rdr::Exception& e) {
-    fprintf(stderr,"ReadFromRFBServer: %s\n",e.str());
-  }
-  return False;
+    try {
+        fis->readBytes(out, n);
+        return True;
+    }
+    catch (rdr::Exception& e) {
+        fprintf(stderr, "ReadFromRFBServer: %s\n", e.str());
+    }
+    return False;
 }
 
 
@@ -156,16 +158,17 @@ Bool ReadFromRFBServer(char *out, unsigned int n)
  * Write an exact number of bytes, and don't return until you've sent them.
  */
 
-Bool WriteToRFBServer(char *buf, int n)
+Bool WriteToRFBServer(char* buf, int n)
 {
-  try {
-    fos->writeBytes(buf, n);
-    fos->flush();
-    return True;
-  } catch (rdr::Exception& e) {
-    fprintf(stderr,"WriteExact: %s\n",e.str());
-  }
-  return False;
+    try {
+        fos->writeBytes(buf, n);
+        fos->flush();
+        return True;
+    }
+    catch (rdr::Exception& e) {
+        fprintf(stderr, "WriteExact: %s\n", e.str());
+    }
+    return False;
 }
 
 
@@ -175,44 +178,113 @@ Bool WriteToRFBServer(char *buf, int n)
 
 int ConnectToTcpAddr(const char* hostname, int port)
 {
-  int sock;
-  struct sockaddr_in addr;
-  int one = 1;
-  unsigned int host;
+    int sock;
+    struct sockaddr_in addr;
+    int one = 1;
+    unsigned int host;
+    int res;
+    long arg;
+    fd_set myset;
+    struct timeval tv;
+    int valopt;
+    socklen_t lon;
 
-  if (!StringToIPAddr(hostname, &host)) {
-    fprintf(stderr,"Couldn't convert '%s' to host address\n", hostname);
-    return -1;
-  }
+    if (!StringToIPAddr(hostname, &host)) {
+        fprintf(stderr, "Couldn't convert '%s' to host address\n", hostname);
+        return -1;
+    }
 
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-  addr.sin_addr.s_addr = host;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = host;
 
-  sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock < 0) {
-    fprintf(stderr,programName);
-    perror(": ConnectToTcpAddr: socket");
-    return -1;
-  }
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        fprintf(stderr, programName);
+        perror(": ConnectToTcpAddr: socket");
+        return -1;
+    }
 
-  if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    fprintf(stderr,programName);
-    perror(": ConnectToTcpAddr: connect");
-    close(sock);
-    return -1;
-  }
+    /*if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+      fprintf(stderr,programName);
+      perror(": ConnectToTcpAddr: connect");
+      close(sock);
+      return -1;
+    }*/
 
-  if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
-		 (char *)&one, sizeof(one)) < 0) {
-    fprintf(stderr,programName);
-    perror(": ConnectToTcpAddr: setsockopt");
-    close(sock);
-    return -1;
-  }
+    // Set non-blocking 
+    if ((arg = fcntl(sock, F_GETFL, NULL)) < 0) {
+        fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+        return -1;
+    }
+    arg |= O_NONBLOCK;
+    if (fcntl(sock, F_SETFL, arg) < 0) {
+        fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+        return -1;
+    }
 
-  return sock;
+    // Trying to connect with timeout 
+    res = connect(sock, (struct sockaddr*)&addr, sizeof(addr));
+    if (res < 0) {
+        if (errno == EINPROGRESS) {
+            fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
+            do {
+                tv.tv_sec = 5;
+                tv.tv_usec = 0;
+                FD_ZERO(&myset);
+                FD_SET(sock, &myset);
+                res = select(sock + 1, NULL, &myset, NULL, &tv);
+                if (res < 0 && errno != EINTR) {
+                    fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno));
+                    return -1;
+                }
+                else if (res > 0) {
+                    // Socket selected for write 
+                    lon = sizeof(int);
+                    if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
+                        fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
+                        return -1;
+                    }
+                    // Check the value returned... 
+                    if (valopt) {
+                        fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)
+                        );
+                        return -1;
+                    }
+                    break;
+                }
+                else {
+                    fprintf(stderr, "Timeout in select() - Cancelling!\n");
+                    return -1;
+                }
+            } while (1);
+        }
+        else {
+            fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno));
+            return -1;
+        }
+    }
+    // Set to blocking mode again... 
+    if ((arg = fcntl(sock, F_GETFL, NULL)) < 0) {
+        fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+        return -1;
+    }
+    arg &= (~O_NONBLOCK);
+    if (fcntl(sock, F_SETFL, arg) < 0) {
+        fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+        return -1;
+    }
+
+    if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
+        (char*)&one, sizeof(one)) < 0) {
+        fprintf(stderr, programName);
+        perror(": ConnectToTcpAddr: setsockopt");
+        close(sock);
+        return -1;
+    }
+
+    return sock;
 }
 
 
@@ -225,29 +297,29 @@ int ConnectToTcpAddr(const char* hostname, int port)
 int
 FindFreeTcpPort(void)
 {
-  int sock, port;
-  struct sockaddr_in addr;
+    int sock, port;
+    struct sockaddr_in addr;
 
-  addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
 
-  sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock < 0) {
-    fprintf(stderr,programName);
-    perror(": FindFreeTcpPort: socket");
-    return 0;
-  }
-
-  for (port = TUNNEL_PORT_OFFSET + 99; port > TUNNEL_PORT_OFFSET; port--) {
-    addr.sin_port = htons((unsigned short)port);
-    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
-      close(sock);
-      return port;
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        fprintf(stderr, programName);
+        perror(": FindFreeTcpPort: socket");
+        return 0;
     }
-  }
 
-  close(sock);
-  return 0;
+    for (port = TUNNEL_PORT_OFFSET + 99; port > TUNNEL_PORT_OFFSET; port--) {
+        addr.sin_port = htons((unsigned short)port);
+        if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
+            close(sock);
+            return port;
+        }
+    }
+
+    close(sock);
+    return 0;
 }
 
 
@@ -257,45 +329,45 @@ FindFreeTcpPort(void)
 
 int ListenAtTcpPort(int port)
 {
-  int sock;
-  struct sockaddr_in addr;
-  int one = 1;
+    int sock;
+    struct sockaddr_in addr;
+    int one = 1;
 
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-  addr.sin_addr.s_addr = INADDR_ANY;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = INADDR_ANY;
 
-  sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock < 0) {
-    fprintf(stderr,programName);
-    perror(": ListenAtTcpPort: socket");
-    return -1;
-  }
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        fprintf(stderr, programName);
+        perror(": ListenAtTcpPort: socket");
+        return -1;
+    }
 
-  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-		 (const char *)&one, sizeof(one)) < 0) {
-    fprintf(stderr,programName);
-    perror(": ListenAtTcpPort: setsockopt");
-    close(sock);
-    return -1;
-  }
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+        (const char*)&one, sizeof(one)) < 0) {
+        fprintf(stderr, programName);
+        perror(": ListenAtTcpPort: setsockopt");
+        close(sock);
+        return -1;
+    }
 
-  if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    fprintf(stderr,programName);
-    perror(": ListenAtTcpPort: bind");
-    close(sock);
-    return -1;
-  }
+    if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        fprintf(stderr, programName);
+        perror(": ListenAtTcpPort: bind");
+        close(sock);
+        return -1;
+    }
 
-  if (listen(sock, 5) < 0) {
-    fprintf(stderr,programName);
-    perror(": ListenAtTcpPort: listen");
-    close(sock);
-    return -1;
-  }
+    if (listen(sock, 5) < 0) {
+        fprintf(stderr, programName);
+        perror(": ListenAtTcpPort: listen");
+        close(sock);
+        return -1;
+    }
 
-  return sock;
+    return sock;
 }
 
 
@@ -305,27 +377,27 @@ int ListenAtTcpPort(int port)
 
 int AcceptTcpConnection(int listenSock)
 {
-  int sock;
-  struct sockaddr_in addr;
-  socklen_t addrlen = sizeof(addr);
-  int one = 1;
+    int sock;
+    struct sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    int one = 1;
 
-  sock = accept(listenSock, (struct sockaddr *) &addr, &addrlen);
-  if (sock < 0) {
-    fprintf(stderr,programName);
-    perror(": AcceptTcpConnection: accept");
-    return -1;
-  }
+    sock = accept(listenSock, (struct sockaddr*)&addr, &addrlen);
+    if (sock < 0) {
+        fprintf(stderr, programName);
+        perror(": AcceptTcpConnection: accept");
+        return -1;
+    }
 
-  if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
-		 (char *)&one, sizeof(one)) < 0) {
-    fprintf(stderr,programName);
-    perror(": AcceptTcpConnection: setsockopt");
-    close(sock);
-    return -1;
-  }
+    if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
+        (char*)&one, sizeof(one)) < 0) {
+        fprintf(stderr, programName);
+        perror(": AcceptTcpConnection: setsockopt");
+        close(sock);
+        return -1;
+    }
 
-  return sock;
+    return sock;
 }
 
 
@@ -333,28 +405,28 @@ int AcceptTcpConnection(int listenSock)
  * StringToIPAddr - convert a host string to an IP address.
  */
 
-Bool StringToIPAddr(const char *str, unsigned int *addr)
+Bool StringToIPAddr(const char* str, unsigned int* addr)
 {
-  struct hostent *hp;
+    struct hostent* hp;
 
-  if (strcmp(str,"") == 0) {
-    *addr = 0; /* local */
-    return True;
-  }
+    if (strcmp(str, "") == 0) {
+        *addr = 0; /* local */
+        return True;
+    }
 
-  *addr = inet_addr(str);
+    *addr = inet_addr(str);
 
-  if (*addr != (unsigned int)-1)
-    return True;
+    if (*addr != (unsigned int)-1)
+        return True;
 
-  hp = gethostbyname(str);
+    hp = gethostbyname(str);
 
-  if (hp) {
-    *addr = *(unsigned int *)hp->h_addr;
-    return True;
-  }
+    if (hp) {
+        *addr = *(unsigned int*)hp->h_addr;
+        return True;
+    }
 
-  return False;
+    return False;
 }
 
 
@@ -362,40 +434,40 @@ Bool StringToIPAddr(const char *str, unsigned int *addr)
  * Print out the contents of a packet for debugging.
  */
 
-void PrintInHex(char *buf, int len)
+void PrintInHex(char* buf, int len)
 {
-  int i, j;
-  char c, str[17];
+    int i, j;
+    char c, str[17];
 
-  str[16] = 0;
+    str[16] = 0;
 
-  fprintf(stderr,"ReadExact: ");
+    fprintf(stderr, "ReadExact: ");
 
-  for (i = 0; i < len; i++)
+    for (i = 0; i < len; i++)
     {
-      if ((i % 16 == 0) && (i != 0)) {
-	fprintf(stderr,"           ");
-      }
-      c = buf[i];
-      str[i % 16] = (((c > 31) && (c < 127)) ? c : '.');
-      fprintf(stderr,"%02x ",(unsigned char)c);
-      if ((i % 4) == 3)
-	fprintf(stderr," ");
-      if ((i % 16) == 15)
-	{
-	  fprintf(stderr,"%s\n",str);
-	}
+        if ((i % 16 == 0) && (i != 0)) {
+            fprintf(stderr, "           ");
+        }
+        c = buf[i];
+        str[i % 16] = (((c > 31) && (c < 127)) ? c : '.');
+        fprintf(stderr, "%02x ", (unsigned char)c);
+        if ((i % 4) == 3)
+            fprintf(stderr, " ");
+        if ((i % 16) == 15)
+        {
+            fprintf(stderr, "%s\n", str);
+        }
     }
-  if ((i % 16) != 0)
+    if ((i % 16) != 0)
     {
-      for (j = i % 16; j < 16; j++)
-	{
-	  fprintf(stderr,"   ");
-	  if ((j % 4) == 3) fprintf(stderr," ");
-	}
-      str[i % 16] = 0;
-      fprintf(stderr,"%s\n",str);
+        for (j = i % 16; j < 16; j++)
+        {
+            fprintf(stderr, "   ");
+            if ((j % 4) == 3) fprintf(stderr, " ");
+        }
+        str[i % 16] = 0;
+        fprintf(stderr, "%s\n", str);
     }
 
-  fflush(stderr);
+    fflush(stderr);
 }
